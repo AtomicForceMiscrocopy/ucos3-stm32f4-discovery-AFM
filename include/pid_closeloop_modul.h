@@ -1,5 +1,3 @@
-
-
 #include "module.h"
 #include "pid_clooseloop.h"
 
@@ -28,6 +26,9 @@
 #define MOD_PID_REPORT_INT										0x02
 #define MOD_PID_REPORT_PID										0x03
 
+/*
+ * These definition below is used to request the data from PID mod
+ */
 #define MOD_PID_REQUEST_Z											0x00
 #define MOD_PID_REQUEST_ERR										0x01
 #define MOD_PID_REQUEST_INT										0x03
@@ -49,6 +50,3 @@ void pid_dispatch(void *msg);
 void pid_render(unsigned short *data, unsigned short des_head, unsigned short des_word, unsigned short ori_task_interface, unsigned short *msg);
 
 #endif
-
-
-
