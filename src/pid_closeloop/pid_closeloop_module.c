@@ -131,10 +131,6 @@ task_pid_set(void *p_arg)
 			enable_flag  = 1;
 			break;
 
-		case MOD_PID_CMD_DISABLE:
-			enable_flag = 0;
-			break;
-
 		case MOD_PID_CMD_SETD:
 			pid_setd(msg->para1/10+msg->para2/100.0);
 			break;
@@ -153,10 +149,6 @@ task_pid_set(void *p_arg)
 
 		case MOD_PID_CMD_SETPOINT:
 			pid_setsetpoint(msg->para1);
-			break;
-
-		case MOD_PID_CMD_MOTOR_STOP:
-
 			break;
 		}
 	}

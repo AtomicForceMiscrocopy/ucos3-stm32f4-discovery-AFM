@@ -1,5 +1,3 @@
-
-
 #include "module.h"
 #include "pid_clooseloop.h"
 
@@ -12,21 +10,25 @@
 #define MOD_PID_TASK_RUN											0x01
 #define MOD_PID_TASK_REQUEST									0x02
 
+
 #define MOD_PID_CMD_ENABLE										0x00
 #define MOD_PID_CMD_SETP											0x01
 #define MOD_PID_CMD_SETI												0x02
 #define MOD_PID_CMD_SETD											0x03
 #define MOD_PID_CMD_SETDELAY									0x04
 #define MOD_PID_CMD_SETPOINT									0x05
-#define MOD_PID_CMD_ASK_REPORT_ERR					0x06
-#define MOD_PID_CMD_ASK_REPORT_Z						0x07
-#define MOD_PID_CMD_MOTOR_STOP							0x08
-#define MOD_PID_CMD_DISABLE									0x09
 
+/*
+ * These definition below is used to mark the data sent to PC
+ */
 #define MOD_PID_REPORT_Z												0x00
 #define MOD_PID_REPORT_ERR										0x01
 #define MOD_PID_REPORT_INT										0x02
+#define MOD_PID_REPORT_PID										0x03
 
+/*
+ * These definition below is used to request the data from PID mod
+ */
 #define MOD_PID_REQUEST_Z											0x00
 #define MOD_PID_REQUEST_ERR										0x01
 #define MOD_PID_REQUEST_INT										0x03
@@ -48,6 +50,3 @@ void pid_dispatch(void *msg);
 void pid_render(unsigned short *data, unsigned short des_head, unsigned short des_word, unsigned short ori_task_interface, unsigned short *msg);
 
 #endif
-
-
-
