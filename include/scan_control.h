@@ -20,15 +20,20 @@ typedef enum
 }SCAN_DIR;
 
 void scan_init(void);
-void scan_ic_output(SCAN_DIR dir,uint16_t value);
+void scan_ic_init(void);
+void scan_ic_output(SCAN_DIR dir,short value);
 
-void inc_x();
-void inc_y();
+void inc_x(void);
+void dec_x(void);
+void inc_y(void);
+void dec_y(void);
 
-void set_inc(uint32_t inc_x,uint32_t inc_y);
+void set_inc(short inc_x, short inc_y);
 
-void set_x(uint16_t value);
-void set_y(uint16_t value);
+void set_x_range(short value);
+void set_y_range(short value);
+
+void set_originate(void);
 
 void scan_gpio_config(void);
 void scan_dac_config(void);
