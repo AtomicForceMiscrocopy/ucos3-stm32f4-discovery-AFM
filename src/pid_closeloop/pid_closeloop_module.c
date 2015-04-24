@@ -1,5 +1,7 @@
 #include "pid_closeloop_modul.h"
 
+CPU_INT32U enable_flag = 0;
+
 void
 pid_module_init()
 {
@@ -18,7 +20,8 @@ void
 pid_task_init()
 {
 	OS_ERR err;
-	OSQCreate(&SETQ, "setQ", 10, &err);
+	OSQCreate(&SETQ, "setQ", 100, &err);
+	OSQCreate(&REQUESTQ,'requestQ', 100, &err);
 
 	OSTaskCreate(
 				(OS_TCB	*)&Pid_Run_TCB,
@@ -52,13 +55,29 @@ pid_task_init()
 				(OS_ERR *)&err
 				);
 
+	OSTaskCreate(
+				(OS_TCB	*)&Pid_Request_TCB,
+				(CPU_CHAR	*)"pid set",
+				(OS_TASK_PTR)task_pid_request,
+				(void	*)0,
+				(OS_PRIO	)1,
+				(CPU_STK	*)&Pid_Request_Stk[0],
+				(CPU_STK_SIZE)Pid_Request_Stk[64 / 10],
+				(CPU_STK_SIZE)64,
+				(OS_MSG_QTY	)0,
+				(OS_TICK	)0,
+				(void	*)0,
+				(OS_OPT)(OS_OPT_TASK_STK_CHK|OS_OPT_TASK_STK_CLR),
+				(OS_ERR *)&err
+				);
+
 }
 
 void
-pid_dispatch(unsigned short *msg)
+pid_dispatch(void *msg)
 {
 	OS_ERR err;
-	unsigned short temp_task = *(msg+1)>>8;
+	unsigned short temp_task = ((CMD_STRU*)msg)->cmd_word>>8;
 	switch (temp_task)
 	{
 	case MOD_PID_TASK_SET:
@@ -67,14 +86,29 @@ pid_dispatch(unsigned short *msg)
 }
 
 void
-pid_render(unsigned short *data, unsigned short des_head, unsigned short des_word, unsigned short ori_task_interface, unsigned short *msg)
+task_pid_request(void *p_arg)
 {
-	*msg = des_head;
-	*(msg+1) = des_word;
-	*(msg+2) = *data;
-	*(msg+3) = *(data+1);
-	*(msg+4) = MOD_PID_HEAD;
-	*(msg+5) = ori_task_interface;
+	OS_ERR err;
+	OS_MSG_SIZE size;
+	CPU_TS ts;
+
+	CMD_STRU *msg;
+	CMD_STRU *send_msg=(CMD_STRU*)malloc(sizeof(CMD_STRU));
+
+	while (1)
+	{
+		msg = (CMD_STRU*)OSQPend(&REQUESTQ, 0, OS_OPT_PEND_BLOCKING, &size, &ts, &err);
+		switch(msg->cmd_word & 0x00ff)
+		{
+		case MOD_PID_REQUEST_Z:
+			// send messages to the model where the request came from.
+			break;
+		case MOD_PID_REQUEST_ERR:
+			break;
+		case MOD_PID_REQUEST_INT:
+			break;
+		}
+	}
 }
 
 void
@@ -83,81 +117,39 @@ task_pid_set(void *p_arg)
 	OS_ERR err;
 	OS_MSG_SIZE size;
 	CPU_TS ts;
-	char dispatch_flag = 0;
 
-	unsigned short *msg, msg_send[6], data[2];
+	CMD_STRU *msg;
+	CMD_STRU *send_msg = (CMD_STRU*)malloc(sizeof(CMD_STRU));
+
 	while (1)
 	{
-		msg = OSQPend(&SETQ, 0, OS_OPT_PEND_BLOCKING, &size, &ts, &err);
-		switch (*msg)
+
+		msg =(CMD_STRU*) OSQPend(&SETQ, 0, OS_OPT_PEND_BLOCKING, &size, &ts, &err);
+		switch (msg->cmd_word & 0x00ff)
 		{
+		case MOD_PID_CMD_ENABLE:
+			enable_flag  = 1;
+			break;
+
 		case MOD_PID_CMD_SETD:
-			pid_setd((double)(*(msg+2))+(double)*((msg+1)));
-			data[0] = 0x0000;
-			data[1] = 0x0001;
-			pid_render(data,MOD_COMM_HEAD,(MOD_COMM_TASK_SEND<<8) + MOD_COMM_CMD_SEND_INT,
-					   (MOD_PID_TASK_SET <<8) + MOD_PID_CMD_SETD, msg_send);
-			dispatch_flag = 1;
+			pid_setd(msg->para1/10+msg->para2/100.0);
 			break;
+
 		case MOD_PID_CMD_SETI:
-			pid_seti((double)(*(msg+2))+(double)*((msg+1)));
-			data[0] = *(msg+1);
-			data[1] = *(msg+2);
-			pid_render(data,MOD_COMM_HEAD,(MOD_COMM_TASK_SEND<<8) + MOD_COMM_CMD_SEND_INT,
-					   (MOD_PID_TASK_SET <<8) + MOD_PID_CMD_SETI, msg_send);
-			dispatch_flag = 1;
+			pid_seti(msg->para1/10+msg->para2/100.0);
 			break;
+
 		case MOD_PID_CMD_SETP:
-			pid_setp((double)(*(msg+2))+(double)*((msg+1)));
-			data[0] = *(msg+1);
-			data[1] = *(msg+2);
-			pid_render(data,MOD_COMM_HEAD,(MOD_COMM_TASK_SEND<<8) + MOD_COMM_CMD_SEND_INT,
-					   (MOD_PID_TASK_SET <<8) + MOD_PID_CMD_SETP, msg_send);
-			dispatch_flag =1;
+			pid_setp(msg->para1/10+msg->para2/100.0);
 			break;
+
 		case MOD_PID_CMD_SETDELAY:
-			pid_setdelay(*(msg+1)+*(msg+2));
-			data[0] = *(msg+1);
-			data[1] = *(msg+2);
-			pid_render(data,MOD_COMM_HEAD,(MOD_COMM_TASK_SEND<<8) + MOD_COMM_CMD_SEND_INT,
-					   (MOD_PID_TASK_SET <<8) + MOD_PID_CMD_SETDELAY, msg_send);
-			dispatch_flag = 1;
+			pid_setdelay(msg->para1);
 			break;
+
 		case MOD_PID_CMD_SETPOINT:
-			pid_setsetpoint(*(msg+1)+*(msg+2));
-			data[0] = *(msg+1);
-			data[1] = *(msg+2);
-			pid_render(data,MOD_COMM_HEAD,(MOD_COMM_TASK_SEND<<8) + MOD_COMM_CMD_SEND_INT,
-					   (MOD_PID_TASK_SET <<8) + MOD_PID_CMD_SETPOINT, msg_send);
-			dispatch_flag = 1;
+			pid_setsetpoint(msg->para1);
 			break;
-		case MOD_PID_CMD_ASK_REPORT_ERR:
-			pid_report_err(data);
-			data[1]=0;
-			pid_render(data,MOD_COMM_HEAD,(MOD_COMM_TASK_SEND<<8) + MOD_COMM_CMD_SEND_INT,
-					   (MOD_PID_TASK_SET << 8) + MOD_PID_CMD_ASK_REPORT_ERR, msg_send);
-			dispatch_flag = 1;
-			break;
-		case MOD_PID_CMD_ASK_REPORT_Z:
-			pid_report_z(data+1);
-			data[0] = 0;
-			pid_render(data,MOD_COMM_HEAD,(MOD_COMM_TASK_SEND<<8) + MOD_COMM_CMD_SEND_INT,
-					   (MOD_PID_TASK_SET<<8) + MOD_PID_CMD_ASK_REPORT_Z, msg_send);
-			dispatch_flag = 1;
-			break;
-		case MOD_PID_CMD_MOTOR_STOP:
-//			if (pid_setpoint == pid_z)
-			{
-//				pid_render(data, MOD_COMM_HEAD, (MOD_COMM_TASK_SEND <<8)+ MOD_COMM_CMD_BOARD_SEND_INT,
-//						(MOD_MOTOR_TASK_MOVE<<8) + MOD_MOTOR_CMD_STOP, msg_send);
-				msg_send[4] = MOD_MOTOR_HEAD;
-				dispatch_flag = 1;
-			}
-		}
-		if (dispatch_flag)
-		{
-			module_msg_dispatch(msg_send);
-			dispatch_flag = 0;
 		}
 	}
 }
@@ -168,7 +160,10 @@ task_pid_run(void *p_arg)
 	unsigned short signal;
 	while (1)
 	{
-		pid_value_signal(&signal);
-		pid_handler(signal);
+		if (enable_flag)
+		{
+			pid_value_signal(&signal);
+			pid_handler(signal);
+		}
 	}
 }

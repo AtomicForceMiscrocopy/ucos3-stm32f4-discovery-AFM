@@ -18,10 +18,7 @@ OS_Q	SendDataQ;
 static OS_TCB Comm_Send_TCB;
 static CPU_STK Comm_Send_Stk[256];
 
-/*
- * Send Task of Comm
- * =================
- */
+
 void task_comm_send(void *p_arg);
 
 void comm_module_init();

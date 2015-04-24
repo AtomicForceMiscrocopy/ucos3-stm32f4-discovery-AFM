@@ -62,7 +62,7 @@ motor_dispatch(void *msg)
 {
 	OS_ERR err;
 	CMD_STRU* temp =(CMD_STRU*)msg;
-	switch ( (((CMD_STRU*)msg)->cmd_word)>>8)
+	switch ( temp->cmd_word >> 8)
 	{
 	case MOD_MOTOR_TASK_MOVE:
 		OSQPost(&MoveQ, msg, sizeof(unsigned short)*5, OS_OPT_POST_FIFO, &err);

@@ -23,3 +23,5 @@
 *.hex
 /Debug
 /Debug
+/Debug/
+/Debug/

@@ -39,7 +39,7 @@ pid_handler(unsigned short signal)
 
 	if (pid_z>0xfff) pid_z = 0xfff;
 	if (pid_z<0) pid_z = 0;
-//	pid_z = pid_z * 4095 / 32768;
+
 	pid_IC_outputz(PID_OUTPUT_PORT_CHANNEL, ((unsigned short)pid_z) & 0x0FFF);
 }
 
