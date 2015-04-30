@@ -1,6 +1,7 @@
 #include "bcomm.h"
 #include "bcomm_module.h"
 
+
 unsigned char brxbuff[BCOMM_RX_BUFF_SIZE];
 unsigned char brxbuff_count;
 
@@ -45,11 +46,33 @@ void bcomm_IC_init()
 
 
 void
+bcomm_test()
+{
+
+	while(brxbuff_count>0)
+	{
+		brxbuff_count--;
+		if((brxbuff_count%2)==1)
+		{
+			unsigned char temp;
+			temp = brxbuff[brxbuff_count];
+			brxbuff[brxbuff_count]=brxbuff[brxbuff_count-1];
+			brxbuff[brxbuff_count-1]=temp;
+		}
+	}
+	bcomm_IC_array_send(brxbuff,BCOMM_RX_BUFF_SIZE);
+}
+
+
+
+void
 bcomm_IC_send(unsigned char data)
 {
 	while(USART_GetFlagStatus(BCOMM_USART,USART_FLAG_TXE)==RESET);
 	USART_SendData(BCOMM_USART,data);
 }
+
+
 
 void
 bcomm_IC_array_send(unsigned char *data,int len)
@@ -61,6 +84,8 @@ bcomm_IC_array_send(unsigned char *data,int len)
 		i++;
 	}
 }
+
+
 
 void
 USART3_IRQHandler(void)
@@ -81,6 +106,7 @@ USART3_IRQHandler(void)
 		{
 			USART_ITConfig(BCOMM_USART, USART_IT_RXNE, DISABLE);
 			module_msg_dispatch((CMD_STRU*)brxbuff);
+			bcomm_test();
 			brxbuff_count = 0;
 			USART_ITConfig(BCOMM_USART, USART_IT_RXNE, ENABLE);
 		}
