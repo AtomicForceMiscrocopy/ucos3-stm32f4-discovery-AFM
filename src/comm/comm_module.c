@@ -53,7 +53,7 @@ task_comm_send(void *p_arg)
 	CMD_STRU *msg;
 	while (1)
 	{
-		msg = (CMD_STRU*)OSQPend(&SendDataQ,0,OS_OPT_PEND_BLOCKING,&size,&ts,&err);
+		msg = (CMD_STRU*)OSQPend(&SendDataQ,0,OS_OPT_PEND_BLOCKING,&size,&ts,&err);  //msg = OSQPend(...) ??
 		module_msg_render((MSG_STRU*)msg,
 				msg->cmd_head,
 				msg->cmd_word,

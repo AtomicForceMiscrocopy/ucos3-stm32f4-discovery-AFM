@@ -15,7 +15,7 @@
 
 OS_Q	SendDataQ;
 
-static OS_TCB Comm_Send_TCB;
+static OS_TCB Comm_Send_TCB;                             //不要  static ??
 static CPU_STK Comm_Send_Stk[256];
 
 
