@@ -1,7 +1,7 @@
 #include "module.h"
 
-void (*init_function[10])()={comm_module_init,scan_module_init};
-unsigned short head_list[10] = {MOD_COMM_HEAD,MOD_SCAN_HEAD};
+void (*init_function[10])()={comm_module_init,scan_module_init,bcomm_module_init};
+unsigned short head_list[10] = {MOD_COMM_HEAD,MOD_SCAN_HEAD,MOD_BCOMM_HEAD};
 int count_modules = 2;
 
 void module_init()

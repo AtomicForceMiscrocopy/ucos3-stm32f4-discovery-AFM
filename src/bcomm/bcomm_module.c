@@ -1,6 +1,4 @@
-#include "bcomm.h"
 #include "bcomm_module.h"
-
 
 void
 bcomm_module_init()
@@ -63,7 +61,7 @@ task_bcomm_send(void *p_arg)
 				msg->para1,
 				msg->para2,
 				msg->para3);
-		bcomm_ic_array_send(msg,10);
+		bcomm_IC_array_send(msg,10);
 	}
 }
 

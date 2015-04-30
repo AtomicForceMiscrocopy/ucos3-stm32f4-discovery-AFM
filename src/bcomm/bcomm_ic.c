@@ -57,7 +57,7 @@ bcomm_IC_array_send(unsigned char *data,int len)
 	int i=0;
 	while(i<len)
 	{
-		bcomm_ic_send(*(data+i));
+		bcomm_IC_send(*(data+i));
 		i++;
 	}
 }
